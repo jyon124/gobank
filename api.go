@@ -48,14 +48,22 @@ func (s *APIServer) handleAccount(w http.ResponseWriter, r *http.Request) error 
 func (s *APIServer) handleGetAccount(w http.ResponseWriter, r *http.Request) error {
 	id := mux.Vars(r)["id"]
 
-	// db.get(id)
-	// account := NewwAccount("Anthony", "GG")
 	fmt.Println(id)
 	return WriteJSON(w, http.StatusOK, &Account{})
 }
 
 func (s *APIServer) handleCreateAccount(w http.ResponseWriter, r *http.Request) error {
-	return nil
+	createAccountReq := new(CreateAccountRequest)
+	if err := json.NewDecoder(r.Body).Decode(createAccountReq); err != nil {
+		return err
+	}
+
+	account := NewAccount(createAccountReq.FirstName, createAccountReq.LastName)
+	if err := s.store.CreateAccount(account); err != nil {
+		return err
+	}
+
+	return WriteJSON(w, http.StatusOK, account)
 }
 
 func (s *APIServer) handleDeleteAccount(w http.ResponseWriter, r *http.Request) error {

@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 
 	_ "github.com/lib/pq"
 )
@@ -33,7 +34,42 @@ func NewPostgresstore() (*Postgresstore, error) {
 	}, nil
 }
 
-func (s *Postgresstore) CreateAccount(*Account) error {
+func (s *Postgresstore) Init() error {
+	return s.createAccountTable()
+}
+
+func (s *Postgresstore) createAccountTable() error {
+	query := `create table if not exists account (
+		id serial primary key,
+		first_name varchar(50),
+		last_name varchar(50),
+		number serial,
+		balance serial,
+		created_at timestamp
+	)`
+
+	_, err := s.db.Exec(query)
+	return err
+}
+
+func (s *Postgresstore) CreateAccount(acc *Account) error {
+	query := `insert into account
+	(first_name, last_name, number, balance, created_at)
+	values ($1, $2, $3, $4, $5)`
+
+	resp, err := s.db.Query(
+		query,
+		acc.FirstName,
+		acc.LastName,
+		acc.Number,
+		acc.Balance,
+		acc.CreateAt,
+	)
+	if err != nil {
+		return nil
+	}
+
+	fmt.Printf("%+v\n", resp)
 	return nil
 }
 
